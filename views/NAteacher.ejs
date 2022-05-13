@@ -1,0 +1,489 @@
+<div class="d-flex" id="wrapper">
+    <%- include('./partials/sidebar.ejs') %>
+        <!--Page content-->
+        <div id="page-content-wrapper">
+            <nav class="navbar navbar-expand-lg navbar-light">
+                <ul class="navbar-nav mr-auto">
+                    <button class="btn btn-secondary" id="menu-toggle">
+          <i class="fas fa-bars fa-2x" aria-hidden="true"></i>
+        </button>
+                    <div id="Buttons">
+                        <button class="btn btn-outline-primary" onclick="overview()">
+            Overview
+          </button>
+                        <button class="btn btn-outline-primary" onclick="quiz()">Quiz</button>
+                        <button class="btn btn-outline-primary" onclick="summary()">
+            Summary
+          </button>
+                    </div>
+                </ul>
+            </nav>
+            <div class="float-container">
+                <div class="float-child">
+                    <h2>Resources</h2>
+                    <hr />
+                    <div id="resources"></div>
+                </div>
+                <div class="float-child">
+                    <div id="Content"></div>
+                </div>
+            </div>
+            <style>
+                .float-container {
+                    /* border: 3px solid #fff; */
+                    padding: 20px;
+                }
+                
+                .float-child {
+                    width: 40%;
+                    float: left;
+                    padding: 20px;
+                    /* border: 2px solid red; */
+                }
+            </style>
+        </div>
+
+        <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+        <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" /> -->
+        <!-- <input type="button" class="mybutton btn btn-primary" onclick="showModal()" value="Open Model" /> -->
+
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+                        <h4 class="modal-title" id="exampleModalLabel"></h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="divTxtModal"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">
+            Close
+          </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            var this_pathway_id = <%- JSON.stringify(r_id) %>;
+            var groupIdsList = <%- JSON.stringify(groupIds) %>;
+            let groupIds = groupIdsList.filter((item, i, ar) => ar.indexOf(item) === i);
+            // console.log(groupIds);
+            // console.log(this_pathway_id);
+            // console.log("Hi to teacher from new NAteacher file.");
+            segment_wise_resources();
+
+            function doEdit(id1) {
+                // console.log(_overview);
+                var arr = id1.split("_");
+                var collection_id = arr[1];
+                var groupId = arr[2];
+
+
+                // console.log(groupId)
+                var id = 'Content-Content' + groupId;
+
+                console.log(id1);
+                var contenteditable = document.getElementById(id).contentEditable;
+
+                if (contenteditable == 'inherit' || contenteditable == 'false') {
+                    document.getElementById(id).contentEditable = true;
+                    document.getElementById(id).focus();
+
+                    document.getElementById(id1).innerHTML = 'Unedit';
+                } else {
+                    document.getElementById(id).contentEditable = false;
+                    document.getElementById(id1).innerHTML = 'edit';
+                }
+            }
+
+            function doSubmit(id1) {
+                var arr = id1.split("_");
+                var collection_id = arr[1];
+                var groupid = arr[2];
+
+
+                var id = 'Content-Content' + groupid;
+
+                console.log(id);
+                console.log(collection_id + " " + groupid);
+                // var contenteditable = document.getElementById(id).contentEditable;
+                var overview = document.getElementById(id).textContent;
+                var data = {
+                    update_overview: overview
+                };
+                console.log(overview);
+
+                var connection = "http://44.231.142.215:5555/narrativeArc/SetOverview/" + collection_id + "/" + groupid;
+
+                $.ajax({
+                    type: 'POST',
+                    data: JSON.stringify(data),
+                    contentType: 'application/json',
+                    url: connection, //calling the api
+                    success: function(data) {
+                        console.log(data.updated);
+                        if (data.updated == '111') { // if true (1)
+                            setTimeout(function() { // wait for 5 secs(2)
+                                location.reload(); // then reload the page.(3)
+                            }, 1);
+                        }
+                    }
+                })
+
+            }
+
+            function submit_quiz(id1) {
+
+
+                // console.log(orgdata);
+                var arr = id1.split("_");
+                var collection_id = arr[1];
+                var groupid = arr[2];
+                var ques_id = arr[3];
+                var orgdata;
+
+
+
+                var id = 'ques' + groupid + ques_id;
+                var ida = 'options' + groupid + ques_id + '1';
+                var idb = 'options' + groupid + ques_id + '2';
+                var idc = 'options' + groupid + ques_id + '3';
+                var idd = 'options' + groupid + ques_id + '4';
+
+                var ques = document.getElementById(id).textContent;
+                var a = document.getElementById(ida).textContent;
+                var b = document.getElementById(idb).textContent;
+                var c = document.getElementById(idc).textContent;
+                var d = document.getElementById(idd).textContent;
+
+                // console.log(a);
+                if (a.startsWith(" a)")) {
+                    console.log("a Matched");
+                    a = a.substring(3);
+                    // console.log(a);
+                }
+                if (b.startsWith(" b)"))
+                    b = b.substring(3);
+
+                if (c.startsWith(" c)"))
+                    c = c.substring(3);
+
+                if (d.startsWith(" d)"))
+                    d = d.substring(3);
+
+                var i = 0;
+                for (i = 0; i < ques.length; i++) {
+                    if (ques[i] >= '0' && ques[i] <= '9') {
+                        console.log("inside loop ");
+                        continue;
+                    } else
+                        break;
+                }
+
+                if (i + 1 < ques.length) {
+                    ques = ques.substring(i + 1);
+                }
+
+                $.ajax({
+                    url: "http://44.231.142.215:5000/GetQuizDetails/" + String(collection_id) + "/" + String(groupid),
+                    type: "GET",
+                    success: async function(data) {
+                        // console.log(orgdata);
+                        orgdata = data;
+                        console.log("logs\n\n\n\n")
+                        console.log(orgdata);
+                        console.log(Object.keys(orgdata));
+                        console.log(orgdata["question"]["ques1"]);
+                        console.log(typeof(orgdata));
+
+                        var data = {
+                            ques: ques,
+                            answer: a,
+                            option1: b,
+                            option2: c,
+                            option3: d
+                        };
+
+                        orgdata["question"]["ques" + ques_id] = data;
+                        console.log(orgdata);
+
+                        var connection = "http://44.231.142.215:5555/narrativeArc/SetQuizDetails/" + 1 + "/" + collection_id + "/" + groupid;
+                        console.log("api call ..................... ");
+                        $.ajax({
+                            type: 'POST',
+                            data: JSON.stringify(orgdata["question"]),
+                            contentType: 'application/json',
+                            url: connection, //calling the api
+                            success: function(data) {
+                                console.log(data.updated);
+                                // if (data.updated == '200') { // if true (1)
+                                setTimeout(function() { // wait for 5 secs(2)
+                                    location.reload(); // then reload the page.(3)
+                                }, 1);
+                                // }
+                            }
+                        })
+                    }
+                });
+
+
+
+
+
+
+            }
+
+            function edit_quiz(id1) {
+                // console.log(_overview);
+                var arr = id1.split("_");
+                var collection_id = arr[1];
+                var groupId = arr[2];
+                var questId = arr[3];
+
+                // console.log(groupId)
+                var id = 'ques' + groupId + questId;
+
+                var ida = 'options' + groupId + questId + '1';
+                var idb = 'options' + groupId + questId + '2';
+                var idc = 'options' + groupId + questId + '3';
+                var idd = 'options' + groupId + questId + '4';
+
+                var arr = [id, ida, idb, idc, idd];
+                for (var i = 0; i < arr.length; i++) {
+                    var contenteditable = document.getElementById(arr[i]).contentEditable;
+
+                    if (contenteditable == 'inherit' || contenteditable == 'false') {
+                        document.getElementById(arr[i]).contentEditable = true;
+                        document.getElementById(id).focus();
+
+                        document.getElementById(id1).innerHTML = 'Unedit';
+                    } else {
+                        document.getElementById(arr[i]).contentEditable = false;
+                        document.getElementById(id1).innerHTML = 'edit';
+                    }
+
+                }
+
+
+            }
+
+            async function segment_wise_resources() {
+                // console.log("Overview");
+                document.getElementById("Content").innerHTML = "";
+                for (var i = 1; i <= groupIds.length; i++) {
+                    var url = 'http://44.231.142.215:5555/narrativeArc/teacher/getSegmentSummary/' + String(this_pathway_id) + '/' + String(groupIds[i - 1]);
+                    var segmentData;
+                    console.log(String(groupIds[i - 1]));
+                    console.log(String(this_pathway_id));
+                    await fetch(url)
+                        .then(res => res.json())
+                        .then((out) => {
+                            segmentData = out;
+                            // console.log(out);
+
+                        })
+                        .catch(err => {
+                            throw err
+                        });
+                    await get_segmentwise_resources(this_pathway_id, groupIds[i - 1], i, segmentData);
+
+
+                }
+            }
+
+            function showVideo(videoUrl) {
+                $('#myModal').modal('show');
+                var txt = "";
+                var path = "http://44.231.142.215:5555/datastore/raw/" + videoUrl
+                txt = '<center><video width="480" style="margin-top: 2rem;" controls> <source src=' + path + ' type="video/mp4"></video></center>'
+                const divTxtModal = document.getElementById("divTxtModal");
+                divTxtModal.innerHTML = txt;
+                console.log(txt);
+            }
+
+            //newly added
+            async function get_segmentwise_resources(collection_id, groupId, num, segmentData) {
+                return $.ajax({
+                    url: "http://44.231.142.215:5000/GetOverview/" + String(collection_id) + "/" + String(groupId),
+                    type: "GET",
+                    success: function(data) {
+                        _overview = data.overview;
+
+                        //JSON FORMATIING
+                        var resource = segmentData.rsrList;
+                        var keys = Object.keys(resource);
+                        console.log(resource);
+                        var name = 'resources-resources';
+                        _groupId = String(groupId);
+                        console.log(_groupId);
+                        document.getElementById("resources").innerHTML += '<h4 id="resources-heading">Segment ' + num.toString() + '</h2>';
+
+                        //Details of resource for each segment
+                        for (let i = 0; i < keys.length; i++) {
+                            var name = resource[keys[i]].resourceName;
+                            var resourceTime = resource[keys[i]].attentionTime;
+                            var resourceType = resource[keys[i]].resourceType;
+                            var resourceDesc = resource[keys[i]].resourceDescription;
+                            var resourceTagName = resource[keys[i]].resourceTags[0].tagName;
+
+                            document.getElementById("resources").innerHTML += ' <div class="card border-dark mb-6" style="max-width: 25rem; margin-top:20px; margin-bottom: 20px;">' + '<div class="card-body" id = ' + name + ' onClick="showVideo(this.id)">' + '<h6 class="card-title" style="margin-bottom:0.01rem;">' +
+                                name + '</h6>' +
+                                '<small class="text-muted" style="margin-bottom: 5rem;">&nbsp;&nbsp;<i class="fas fa-clock"></i>&nbsp;' + resourceTime + '&nbsp;mins</small>' +
+                                '<small class="text-muted" style="margin-bottom: 5rem;">&nbsp;&nbsp;<i class="fas fa-tags" aria-hidden="true"></i>&nbsp;' + resourceTagName + '</small>' +
+                                '<small class="text-muted" style="margin-bottom: 5rem;">&nbsp;&nbsp;<i class="fas fa-video" aria-hidden="true"></i>' + resourceType + '</small>' +
+                                '<p class="card-text">' + resourceDesc + '<p/>' +
+                                '</div>'
+
+                        }
+
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                })
+            }
+
+
+            async function get_overview(collection_id, groupId, num, segmentData) {
+
+                return $.ajax({
+                    url: "http://44.231.142.215:5000/GetOverview/" + String(collection_id) + "/" + String(groupId),
+                    type: "GET",
+                    success: function(data) {
+                        _overview = data.overview;
+
+                        //JSON FORMATIING
+                        var resource = segmentData.rsrList;
+                        var keys = Object.keys(resource);
+                        // console.log(resource);
+                        var name = 'Content-Content';
+                        _groupId = String(groupId);
+                        console.log(_groupId);
+                        document.getElementById("Content").innerHTML += '<h2 id="Content-heading">Segment ' + num.toString() + '</h2>';
+                        document.getElementById("Content").innerHTML += '<div id=' + name + groupId + '> ' + _overview + '</div>';
+                        var name2 = 'edit_' + collection_id + "_" + groupId;
+                        var name3 = 'submit_' + collection_id + "_" + groupId;
+                        document.getElementById("Content").innerHTML += '<div id="Content-button"> ' + "<button class='btn btn-outline-primary' id=" + name2 + "   type='button' onclick='doEdit(this.id)' style='margin:10px'>Edit </button>" + "<button class='btn btn-outline-primary' id=" + name3 + " type='button' onclick='doSubmit(this.id)' >Submit </button><br>" + '</div>' + '<hr />';
+                        console.log(_overview);
+
+                        //Details of resource for each segment
+                        // for (let i = 0; i < keys.length; i++) {
+                        //     var name = resource[keys[i]].resourceName;
+                        //     var resourceTime = resource[keys[i]].attentionTime;
+                        //     var resourceType = resource[keys[i]].resourceType;
+                        //     var resourceDesc = resource[keys[i]].resourceDescription;
+                        //     var resourceTagName = resource[keys[i]].resourceTags[0].tagName;
+
+                        //     document.getElementById("Content").innerHTML += ' <div class="card border-dark mb-6" style="max-width: 25rem; margin-top:20px; margin-bottom: 20px;">' + '<div class="card-body">' + '<h6 class="card-title" style="margin-bottom:0.01rem;">' +
+                        //         name + '</h6>' +
+                        //         '<small class="text-muted" style="margin-bottom: 5rem;">&nbsp;&nbsp;<i class="fas fa-clock"></i>&nbsp;' + resourceTime + '&nbsp;mins</small>' +
+                        //         '<small class="text-muted" style="margin-bottom: 5rem;">&nbsp;&nbsp;<i class="fas fa-tags" aria-hidden="true"></i>&nbsp;' + resourceTagName + '</small>' +
+                        //         '<small class="text-muted" style="margin-bottom: 5rem;">&nbsp;&nbsp;<i class="fas fa-video" aria-hidden="true"></i>' + resourceType + '</small>' +
+                        //         '<p class="card-text">' + resourceDesc + '<p/>' +
+                        //         '</div>'
+
+                        // }
+
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                })
+            }
+
+            function get_summary(collection_id) {
+                return $.ajax({
+                    url: "http://44.231.142.215:5000/GetSummary/" + String(collection_id),
+                    type: "GET",
+                    success: function(data) {
+                        _summary = data.summary;
+                        document.getElementById("Content").innerHTML = "<h2>Pathway summary </h2>"
+                        document.getElementById("Content").innerHTML += "<div id='Content-content'> " + _summary + "</div>";
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                })
+            }
+
+            async function get_quiz(collection_id, groupId, num) {
+                console.log(collection_id, groupId);
+                return $.ajax({
+                    url: "http://44.231.142.215:5000/GetQuizDetails/" + String(collection_id) + "/" + String(groupId),
+                    type: "GET",
+                    success: async function(data) {
+                        console.log(data);
+                        // console.log(JSON.parse(data.question));
+                        // console.log(data.question);
+                        document.getElementById("template_question").innerHTML += '<h2>Segment ' + num.toString() + '</h2>';
+                        var ques_id = "ques";
+                        var options_id = "options";
+
+                        for (var j = 1; j <= data.question.n; j++) {
+
+                            document.getElementById("template_question").innerHTML +=
+                                '<div style="display:inline" class="question" id=' + ques_id + groupId + j + ' >' + j.toString() + '. ' + data.question["ques" + j.toString()].ques + '</div> <div class= "options" id=' + options_id + groupId + j + "1" + '> a) ' + data.question["ques" + j.toString()].answer + '</div><div class= "options" id=' + options_id + groupId + j + "2" + '> b) ' + data.question["ques" + j.toString()].option1 + '</div><div class= "options" id=' + options_id + groupId + j + "3" + '> c) ' + data.question["ques" + j.toString()].option2 + '</div><div class= "options" id=' + options_id + groupId + j + "4" + '> d) ' + data.question["ques" + j.toString()].option3 + '</div>';
+
+                            var name1 = 'edit_' + collection_id + '_' + groupId + '_' + j;
+                            var name2 = 'submit_' + collection_id + '_' + groupId + '_' + j;
+                            document.getElementById("template_question").innerHTML += '<div id="Content-button"> ' + "<button class='btn btn-outline-primary' id=" + name1 + "   type='button' onclick='edit_quiz(this.id)' style='margin:10px'>Edit </button>" + "<button class='btn btn-outline-primary' id=" + name2 + " type='button' onclick='submit_quiz(this.id)' >Submit </button><br>" + '</div>' + '<hr />';
+
+                        }
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                })
+            }
+
+            async function overview() {
+                // console.log("Overview");
+                document.getElementById("Content").innerHTML = "";
+                for (var i = 1; i <= groupIds.length; i++) {
+                    var url = 'http://44.231.142.215:5555/narrativeArc/teacher/getSegmentSummary/' + String(this_pathway_id) + '/' + String(groupIds[i - 1]);
+                    var segmentData;
+
+                    await fetch(url)
+                        .then(res => res.json())
+                        .then((out) => {
+                            segmentData = out;
+                            // console.log(out);
+
+                        })
+                        .catch(err => {
+                            throw err
+                        });
+                    await get_overview(this_pathway_id, groupIds[i - 1], i, segmentData);
+
+
+                }
+            }
+
+            async function quiz() {
+                // console.log("Quiz");
+                document.getElementById("Content").innerHTML = '<div id="template_question"></div>';
+                for (var i = 1; i <= groupIds.length; i++) {
+                    await get_quiz(this_pathway_id, groupIds[i - 1], i);
+                }
+            }
+
+            function summary() {
+                // console.log("Summary");
+                get_summary(this_pathway_id);
+            }
+        </script>
+
+        <!-- include CSS files -->
+        <link href="/css/NarrativeArcTeacherStyle.css" rel="stylesheet" />
+        <script type="text/javascript" src="//images.fedex.com/templates/components/libraries/1.0/jQuery/1.7.2/jquery.min.js"></script>
+        <!-- <script type="text/javascript" src="//www.fedex.com/templates/components/javascript/v2/fx-master-responsive.js"></script>
+        <link rel="stylesheet" type="text/css" href="//www.fedex.com/css/t2/global-wrapper-min.css" id="globalCSS" />
+    
+        <link rel="stylesheet" type="text/css" href="//www.fedex.com/css/t2/master-responsive-min.css" /> -->
+</div>

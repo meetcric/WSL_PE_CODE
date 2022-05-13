@@ -1,0 +1,4 @@
+7713:C 10 Apr 19:42:23.799 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+7713:C 10 Apr 19:42:23.799 # Redis version=4.0.9, bits=64, commit=00000000, modified=0, pid=7713, just started
+7713:C 10 Apr 19:42:23.799 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+7713:M 10 Apr 19:42:23.801 # Creating Server TCP listening socket *:6379: bind: Address already in use
